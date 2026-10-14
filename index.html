@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>One Place — US Parcel GIS, County Records, Gated Offers & Property Bidding</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #020617;
+      color: #f8fafc;
+      overflow: hidden;
+      user-select: none;
+    }
+    .font-display { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.7); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.8); }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .mobile-frame-container {
+      width: 412px;
+      height: 870px;
+      max-height: 94vh;
+      border-radius: 46px;
+      overflow: hidden;
+      box-shadow: 0 0 0 3px #475569, 0 0 0 11px #0f172a, 0 0 0 13px #334155, 0 30px 70px -12px rgba(0, 0, 0, 0.92), 0 0 50px -10px rgba(99, 102, 241, 0.28);
+    }
+    .slide-bid-track {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 44px;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.22) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      outline: none;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+    .slide-bid-track::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 9999px;
+      background: #10b981;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
+      cursor: grab;
+      border: 2px solid #ecfdf5;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.35; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .pulse-ring { animation: pulseRing 2.4s infinite ease-in-out; }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+  <!-- TOP GLOBAL APPLICATION BAR -->
+  <header class="z-30 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/90 bg-slate-950/95 px-3 py-2 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <div class="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-emerald-500 shadow-lg shadow-indigo-500/25">
+          <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-display text-base font-extrabold tracking-tight text-white">One Place</span>
+            <span class="rounded bg-indigo-500/20 border border-indigo-500/40 px-1.5 py-0.5 font-mono-code text-[10px] font-semibold text-indigo-300">US GIS + COUNTY RECORDS</span>
+          </div>
+          <p class="hidden sm:block text-[11px] text-slate-400">Google Maps &amp; 3D Earth Parcel Intelligence • Gated Owner Offers • Live Property Bidding</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="flex items-center rounded-xl border border-slate-800 bg-slate-900 p-0.5 text-xs">
+        <button id="btnDeviceWeb" type="button" class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition bg-indigo-600 text-white shadow">
+          <span>Web App</span>
+        </button>
+        <button id="btnDeviceMobile" type="button" class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition text-slate-400 hover:text-white">
+          <span>Mobile App</span>
+        </button>
+      </div>
+
+      <div class="flex items-center rounded-xl border border-slate-800 bg-slate-900 p-0.5 text-xs">
+        <button id="btnRoleBuyer" type="button" class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition bg-emerald-600 text-white shadow">
+          <span class="h-2 w-2 rounded-full bg-white"></span>
+          <span>Buyer View (POF $4.5M)</span>
+        </button>
+        <button id="btnRoleOwner" type="button" class="relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition text-slate-400 hover:text-white">
+          <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+          <span>Owner View</span>
+          <span id="ownerPendingBadge" class="ml-1 rounded-full bg-amber-500 px-1.5 py-0.2 font-mono-code text-[10px] font-bold text-slate-950">1</span>
+        </button>
+      </div>
+
+      <button id="btnOpenSecurityModal" type="button" class="flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/40 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/50 transition">
+        <span>Security &amp; Audit Ledger</span>
+        <span id="auditCountBadge" class="rounded bg-emerald-500/20 px-1.5 py-0.5 font-mono-code text-[10px] text-emerald-300">4</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="workspaceWrapper" class="relative flex-1 flex overflow-hidden bg-slate-950 items-center justify-center">
+    <div id="appViewport" class="relative flex h-full w-full overflow-hidden bg-slate-950 transition-all duration-300">
+
+      <!-- MOBILE STATUS BAR & DYNAMIC ISLAND -->
+      <div id="mobileStatusBar" class="hidden shrink-0 z-30 flex-col bg-slate-950/95 backdrop-blur-md border-b border-slate-800/70 px-4 pt-2 pb-1.5 select-none">
+        <div class="flex items-center justify-between text-[11px] font-semibold text-slate-200">
+          <span class="font-mono-code text-xs font-bold text-white">9:41</span>
+          <button id="btnDynamicIsland" type="button" class="flex items-center gap-2 rounded-full bg-black border border-slate-800 px-3 py-1">
+            <span class="h-2 w-2 rounded-full bg-emerald-400 pulse-ring"></span>
+            <span id="dynamicIslandText" class="font-mono-code text-[10px] font-bold text-slate-200">One Place • 3D Earth</span>
+          </button>
+          <span class="font-mono-code text-[10px] font-bold text-emerald-400">5G • 100%</span>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE 2D/3D MAP CANVAS -->
+      <section id="mapSection" class="relative flex-1 h-full overflow-hidden select-none">
+        <canvas id="earthMapCanvas" class="h-full w-full cursor-grab active:cursor-grabbing block"></canvas>
+
+        <div class="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+          <div class="pointer-events-auto flex flex-wrap items-center gap-2 rounded-2xl border border-slate-700/80 glass-panel p-1.5 shadow-2xl">
+            <input id="searchInput" type="text" placeholder="Search APN, address, owner, zoning..." class="w-44 sm:w-60 bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none px-2 py-1" />
+            <select id="filterPropertyType" class="rounded-xl bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 text-xs text-slate-200">
+              <option value="ALL">All Parcels (6)</option>
+              <option value="LAND">Vacant Land Only</option>
+              <option value="BUILDING">3D Buildings Only</option>
+              <option value="AUCTION">Live Auctions</option>
+            </select>
+          </div>
+
+          <div class="pointer-events-auto flex items-center gap-1 rounded-2xl border border-slate-700/80 glass-panel p-1 shadow-2xl">
+            <button id="btnCamera2D" type="button" class="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-300">2D Parcel Map</button>
+            <button id="btnCameraHybrid" type="button" class="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-300">Satellite GIS</button>
+            <button id="btnCamera3D" type="button" class="rounded-xl px-2.5 py-1.5 text-xs font-semibold bg-indigo-600 text-white shadow">3D Google Earth</button>
+          </div>
+        </div>
+
+        <div id="parcelQuickBar" class="absolute top-16 left-3 right-3 z-20 flex items-center gap-1.5 overflow-x-auto pb-1 pointer-events-auto"></div>
+
+        <div class="absolute bottom-4 left-3 z-20 flex flex-col gap-2 pointer-events-none">
+          <div class="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-700/80 glass-panel p-1.5 shadow-xl text-xs">
+            <button id="btnTiltDown" type="button" class="rounded-lg bg-slate-800/90 px-2 py-1 font-mono-code text-slate-200 hover:bg-slate-700">Tilt -</button>
+            <span id="hudTiltLabel" class="font-mono-code text-[11px] text-indigo-300 px-1.5">Pitch 55°</span>
+            <button id="btnTiltUp" type="button" class="rounded-lg bg-slate-800/90 px-2 py-1 font-mono-code text-slate-200 hover:bg-slate-700">Tilt +</button>
+            <button id="btnRotateLeft" type="button" class="rounded-lg bg-slate-800/90 px-2 py-1 text-slate-200 hover:bg-slate-700">⟲ Orbit</button>
+            <button id="btnRotateRight" type="button" class="rounded-lg bg-slate-800/90 px-2 py-1 text-slate-200 hover:bg-slate-700">Orbit ⟳</button>
+            <button id="btnZoomIn" type="button" class="rounded-lg bg-slate-800/90 px-2 py-1 font-bold text-slate-200 hover:bg-slate-700">+</button>
+            <button id="btnZoomOut" type="button" class="rounded-lg bg-slate-800/90 px-2 py-1 font-bold text-slate-200 hover:bg-slate-700">−</button>
+            <button id="btnResetCamera" type="button" class="rounded-lg bg-indigo-600/30 border border-indigo-500/40 px-2 py-1 text-[11px] text-indigo-200 hover:bg-indigo-600/50">Reset</button>
+          </div>
+
+          <div class="hidden sm:flex items-center gap-3 rounded-xl border border-slate-800/90 bg-slate-950/85 px-3 py-1.5 font-mono-code text-[11px] text-slate-400">
+            <span id="hudCoords">30.2658° N, 97.7462° W</span>
+            <span>•</span>
+            <span id="hudFips">FIPS 48453 (Travis County, TX)</span>
+          </div>
+        </div>
+
+        <div id="mobileMapActionRail" class="hidden absolute right-2.5 top-28 z-20 pointer-events-auto flex-col gap-1.5">
+          <button id="btnMobile3DToggle" type="button" class="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-700/90 glass-panel text-[10px] font-extrabold text-indigo-300"><span id="mobile3DToggleLabel">3D</span></button>
+          <button id="btnMobileOrbit" type="button" class="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-700/90 glass-panel text-xs font-bold text-slate-200">⟳</button>
+          <button id="btnMobileCenter" type="button" class="flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-700/90 glass-panel text-xs font-bold text-emerald-400">◎</button>
+          <button id="btnMobileRoleToggle" type="button" class="flex h-9 w-9 items-center justify-center rounded-2xl border border-amber-500/40 bg-amber-950/60 text-[9px] font-extrabold text-amber-300"><span id="mobileRoleShortLabel">BUY</span></button>
+        </div>
+
+        <div id="mobileStageControls" class="hidden absolute bottom-2.5 right-2.5 z-20 pointer-events-auto flex items-center gap-1 rounded-xl border border-indigo-500/40 bg-slate-900/95 p-1 text-[10px]">
+          <button id="btnSheetMini" type="button" class="rounded-lg px-2 py-0.5 font-semibold text-slate-300">Peek</button>
+          <button id="btnSheetHalf" type="button" class="rounded-lg px-2 py-0.5 font-semibold bg-indigo-600 text-white">Half</button>
+          <button id="btnSheetFull" type="button" class="rounded-lg px-2 py-0.5 font-semibold text-slate-300">Full</button>
+        </div>
+      </section>
+
+      <!-- PARCEL INTELLIGENCE, OFFER GATE & LIVE BIDDING DRAWER -->
+      <aside id="parcelDrawer" class="z-20 flex flex-col border-l border-slate-800/90 bg-slate-900/95 backdrop-blur-xl shadow-2xl w-full sm:w-[430px] lg:w-[470px] h-full transition-all duration-300 shrink-0">
+        <div id="mobileDragHeader" class="hidden shrink-0 flex-col items-center pt-2 pb-1.5 border-b border-slate-800/70 bg-slate-900/95 cursor-pointer">
+          <div class="h-1.5 w-11 rounded-full bg-slate-500/80"></div>
+          <div class="mt-1 flex items-center justify-between w-full px-4 text-[10px] text-slate-400">
+            <span id="mobileSheetStageIndicator" class="font-mono-code uppercase text-indigo-300">Half Sheet</span>
+            <span class="font-mono-code text-emerald-400">US County Verified</span>
+          </div>
+        </div>
+
+        <div class="border-b border-slate-800/90 p-4 bg-slate-950/50">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <span id="parcelTypeBadge" class="rounded-md bg-indigo-500/20 border border-indigo-500/40 px-2 py-0.5 font-mono-code text-[10px] font-bold uppercase text-indigo-300">3D BUILDING</span>
+              <span id="parcelApnBadge" class="font-mono-code text-xs text-slate-300">APN: 02-1450-0812</span>
+            </div>
+            <span id="parcelOwnerVerifyBadge" class="rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Verified Owner</span>
+          </div>
+          <h1 id="parcelTitle" class="font-display mt-2 text-lg font-extrabold text-white">301 W 2nd St — Silicon Hills Tower &amp; Lot</h1>
+          <p id="parcelSubtitle" class="mt-0.5 text-xs text-slate-400">Austin, TX 78701 • Travis County (FIPS 48453)</p>
+
+          <div class="mt-3 grid grid-cols-3 gap-2">
+            <div class="rounded-xl border border-slate-800/90 bg-slate-900/90 px-2.5 py-2">
+              <span class="block text-[10px] uppercase text-slate-400">County Assessed</span>
+              <span id="metricAssessed" class="font-mono-code text-sm font-bold text-white">$4,250,000</span>
+            </div>
+            <div class="rounded-xl border border-slate-800/90 bg-slate-900/90 px-2.5 py-2">
+              <span class="block text-[10px] uppercase text-slate-400">Lot / Structure</span>
+              <span id="metricSize" class="font-mono-code text-sm font-bold text-white">48,200 sf</span>
+            </div>
+            <div class="rounded-xl border border-slate-800/90 bg-slate-900/90 px-2.5 py-2">
+              <span class="block text-[10px] uppercase text-slate-400">Market Status</span>
+              <span id="metricMarketStatus" class="font-mono-code text-xs font-bold text-emerald-400">LIVE AUCTION</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 border-b border-slate-800 bg-slate-950/70 text-[11px] font-bold uppercase tracking-wider">
+          <button id="tabBtnCounty" type="button" class="flex items-center justify-center gap-1.5 py-3 border-b-2 border-indigo-500 text-indigo-400 transition">1. County Record</button>
+          <button id="tabBtnMessage" type="button" class="flex items-center justify-center gap-1.5 py-3 border-b-2 border-transparent text-slate-400 transition"><span>2. Offer &amp; Chat</span><span id="tabMessageDot" class="h-2 w-2 rounded-full bg-amber-400"></span></button>
+          <button id="tabBtnAuction" type="button" class="flex items-center justify-center gap-1.5 py-3 border-b-2 border-transparent text-slate-400 transition"><span>3. Live Bidding</span><span id="tabAuctionBadge" class="rounded bg-emerald-500/20 px-1.5 py-0.2 font-mono-code text-[9px] text-emerald-300">LIVE</span></button>
+        </div>
+
+        <div id="drawerScrollBody" class="flex-1 overflow-y-auto p-4 space-y-4">
+          <!-- TAB 1: COUNTY RECORD -->
+          <div id="panelCounty" class="space-y-4">
+            <div class="flex items-center justify-between rounded-xl border border-indigo-500/30 bg-indigo-950/25 px-3 py-2 text-xs">
+              <span id="countyRecorderSource" class="font-medium text-indigo-200">Travis Central Appraisal District (TCAD)</span>
+              <span class="font-mono-code text-[10px] text-emerald-400">Synced Live</span>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-2.5">
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <h3 class="text-xs font-bold uppercase text-slate-300">Assessor Parcel &amp; Structure</h3>
+                <span id="countyZoningTag" class="rounded bg-slate-800 px-2 py-0.5 font-mono-code text-[11px] text-indigo-300">CBD-CURE</span>
+              </div>
+              <div id="countySpecsGrid" class="grid grid-cols-2 gap-2.5 text-xs"></div>
+              <div class="pt-1 border-t border-slate-800/70">
+                <span class="block text-[10px] uppercase text-slate-400">Official Legal Description</span>
+                <p id="countyLegalDesc" class="mt-0.5 font-mono-code text-[11px] text-slate-200"></p>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-2 text-xs">
+              <div class="flex justify-between"><span class="text-slate-400">Recorded Title Owner</span><span id="countyOwnerName" class="font-semibold text-white"></span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Entity / Vesting</span><span id="countyVesting" class="text-slate-200"></span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Tax Mailing Address</span><span id="countyMailingRedacted" class="font-mono-code text-[11px] text-amber-400"></span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Direct Contact Gate</span><span id="countyContactGateState" class="text-[11px] font-semibold text-indigo-400"></span></div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-2.5">
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <h3 class="text-xs font-bold uppercase text-slate-300">County Tax &amp; Assessment</h3>
+                <span id="countyTaxAnnual" class="font-mono-code text-xs font-bold text-emerald-400"></span>
+              </div>
+              <div id="countyValuationBars" class="space-y-2"></div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-2">
+              <h3 class="text-xs font-bold uppercase text-slate-300 border-b border-slate-800/80 pb-2">Deed &amp; Transfer Chain</h3>
+              <div id="countyDeedList" class="space-y-2 text-xs"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btnJumpToOffer" type="button" class="rounded-xl bg-indigo-600 py-2.5 px-3 text-xs font-bold text-white hover:bg-indigo-500 transition">Message &amp; Offer Owner</button>
+              <button id="btnJumpToAuction" type="button" class="rounded-xl border border-emerald-500/40 bg-emerald-950/40 py-2.5 px-3 text-xs font-bold text-emerald-300 hover:bg-emerald-900/50 transition">Open Property Bidding</button>
+            </div>
+          </div>
+
+          <!-- TAB 2: GATED OFFER & CHAT -->
+          <div id="panelMessage" class="hidden space-y-4">
+            <div id="messageRoleBanner" class="rounded-xl border p-3 text-xs"></div>
+
+            <div id="ownerRequestDecisionBox" class="hidden rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="rounded-md bg-amber-500/20 px-2 py-0.5 font-mono-code text-[10px] font-bold text-amber-300 uppercase">Incoming Buyer Offer</span>
+                <span id="ownerReqStatusPill" class="font-mono-code text-xs font-bold text-amber-400">PENDING</span>
+              </div>
+              <div class="rounded-xl border border-slate-800 bg-slate-950/80 p-3 space-y-1.5 text-xs">
+                <div class="flex justify-between"><span class="text-slate-400">Offered Price</span><span id="ownerViewOfferAmount" class="font-mono-code text-base font-bold text-white">$4,400,000</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Terms</span><span id="ownerViewOfferTerms" class="text-slate-200">CASH</span></div>
+                <p id="ownerViewIntroNote" class="mt-1 text-slate-200 italic"></p>
+              </div>
+              <div id="ownerDecisionButtons" class="grid grid-cols-2 gap-2">
+                <button id="btnOwnerAcceptReq" type="button" class="rounded-xl bg-emerald-600 py-2.5 px-3 text-xs font-bold text-white hover:bg-emerald-500 transition">✓ Accept &amp; Unlock Chat</button>
+                <button id="btnOwnerDeclineReq" type="button" class="rounded-xl border border-rose-500/40 bg-rose-950/40 py-2.5 px-3 text-xs font-bold text-rose-300 hover:bg-rose-900/50 transition">✕ Decline</button>
+              </div>
+            </div>
+
+            <form id="buyerOfferRequestForm" class="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+              <h3 class="text-xs font-bold uppercase text-white">Submit Direct Offer &amp; Message Request</h3>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-[10px] uppercase text-slate-400 mb-1">Proposed Offer ($)</label>
+                  <input id="inputOfferPrice" type="number" min="10000" step="5000" required class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 font-mono-code text-xs text-white" />
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase text-slate-400 mb-1">Financing & Close</label>
+                  <select id="inputFinancingType" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-xs text-white">
+                    <option value="CASH • 21-Day Close">Cash (21-Day Close)</option>
+                    <option value="COMMERCIAL LOAN • 45-Day Close">Commercial Loan (45d)</option>
+                    <option value="CONVENTIONAL • 30-Day Close">Conventional Loan (30d)</option>
+                    <option value="SELLER FINANCING • 60-Day Close">Seller Financing (60d)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1">Intro Message & Terms</label>
+                <textarea id="inputIntroMessage" rows="3" required placeholder="Introduce your acquisition intent and earnest money terms..." class="w-full rounded-xl border border-slate-700 bg-slate-900 p-2.5 text-xs text-white"></textarea>
+              </div>
+              <button type="submit" class="w-full rounded-xl bg-indigo-600 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition">Send Gated Offer &amp; Message Request</button>
+            </form>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/70 p-3.5 space-y-3">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div class="flex items-center gap-2">
+                  <span id="chatLockIndicatorDot" class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+                  <h3 class="text-xs font-bold uppercase text-slate-200">Encrypted Negotiation Thread</h3>
+                </div>
+                <span id="chatGateStatusBadge" class="rounded px-2 py-0.5 font-mono-code text-[10px] font-bold">LOCKED</span>
+              </div>
+
+              <div id="quickOwnerSwitchPrompt" class="hidden rounded-xl border border-indigo-500/30 bg-indigo-950/30 p-2.5 flex items-center justify-between gap-2 text-xs">
+                <span class="text-indigo-200">Approve this request as the Property Owner?</span>
+                <button id="btnQuickSwitchToOwner" type="button" class="rounded-lg bg-amber-500 px-2.5 py-1 font-bold text-slate-950 hover:bg-amber-400 transition">Switch to Owner View →</button>
+              </div>
+
+              <div id="chatMessagesContainer" class="max-h-56 overflow-y-auto space-y-2.5 pr-1"></div>
+
+              <form id="chatComposerForm" class="space-y-2 pt-2 border-t border-slate-800/80">
+                <div class="flex gap-2">
+                  <input id="inputChatText" type="text" placeholder="Send message (phone/email redacted)..." class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white" />
+                  <input id="inputCounterOffer" type="number" placeholder="Counter $" class="w-28 rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 font-mono-code text-xs text-white" />
+                </div>
+                <button id="btnSendChatMessage" type="submit" class="w-full rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition">Send Encrypted Message / Counter-Offer</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- TAB 3: LIVE PROPERTY BIDDING -->
+          <div id="panelAuction" class="hidden space-y-4">
+            <div id="noAuctionContainer" class="hidden space-y-4">
+              <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-xs text-slate-400">
+                No active auction is currently scheduled for this parcel. Use the <strong>Offer &amp; Chat</strong> tab to submit a direct purchase offer.
+              </div>
+              <form id="ownerLaunchAuctionForm" class="rounded-2xl border border-indigo-500/40 bg-indigo-950/20 p-4 space-y-3">
+                <h3 class="text-xs font-bold uppercase text-indigo-300">Owner Action: Launch Property Bidding</h3>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="block text-[10px] uppercase text-slate-400 mb-1">Starting Bid ($)</label>
+                    <input id="launchStartingBid" type="number" step="10000" value="3000000" required class="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1.5 font-mono-code text-xs text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] uppercase text-slate-400 mb-1">Min Increment ($)</label>
+                    <input id="launchMinIncrement" type="number" step="5000" value="50000" required class="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1.5 font-mono-code text-xs text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] uppercase text-slate-400 mb-1">Entry Fee ($)</label>
+                    <input id="launchEntryFee" type="number" step="500" value="2500" required class="w-full rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-1.5 font-mono-code text-xs text-white" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase text-slate-400 mb-1">Property Terms & Conditions</label>
+                  <textarea id="launchTermsText" rows="3" required class="w-full rounded-xl border border-slate-700 bg-slate-900 p-2.5 text-xs text-white">1. As-Is Special Warranty Deed conveyance.
+2. 5% earnest money deposited to Title Escrow within 48 hours.
+3. 30-day closing period upon high bid acceptance.</textarea>
+                </div>
+                <button type="submit" class="w-full rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 transition">Publish Live Property Auction</button>
+              </form>
+            </div>
+
+            <div id="liveAuctionContainer" class="space-y-4">
+              <div class="rounded-2xl border border-emerald-500/40 bg-slate-900 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span id="auctionStatusLabel" class="font-mono-code text-[11px] font-bold uppercase text-emerald-400">LIVE PROPERTY AUCTION</span>
+                  <span id="auctionCountdown" class="font-mono-code text-xs font-bold text-amber-300">02:45</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <div>
+                    <span class="block text-[10px] uppercase text-slate-400">Current Highest Bid</span>
+                    <span id="auctionCurrentBid" class="font-mono-code text-2xl font-extrabold text-white">$4,350,000</span>
+                  </div>
+                  <div class="text-right">
+                    <span class="block text-[10px] uppercase text-slate-400">Entry Fee Hold</span>
+                    <span id="auctionEntryFeeLabel" class="font-mono-code text-sm font-bold text-indigo-300">$5,000</span>
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-[11px]">
+                  <div><span class="text-slate-400 block">Min Increment</span><span id="auctionMinIncLabel" class="font-mono-code font-semibold text-slate-200">$50,000</span></div>
+                  <div><span class="text-slate-400 block">Reserve</span><span id="auctionReserveBadge" class="font-mono-code font-semibold text-emerald-400">RESERVE MET</span></div>
+                  <div><span class="text-slate-400 block">Soft-Close</span><span class="font-mono-code font-semibold text-amber-300">+3m if &lt;3m</span></div>
+                </div>
+              </div>
+
+              <div id="bidderGateCard" class="rounded-2xl border border-amber-500/40 bg-slate-950/90 p-4 space-y-3 text-xs">
+                <div class="flex justify-between"><span class="font-bold text-amber-300 uppercase">Bidder Onboarding Gate</span><span id="termsShaBadge" class="font-mono-code text-[10px] text-indigo-400"></span></div>
+                <div id="auctionTermsBox" class="max-h-24 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-2.5 text-[11px] text-slate-300 font-mono-code whitespace-pre-wrap"></div>
+                <label class="flex items-start gap-2 cursor-pointer">
+                  <input id="chkAcceptAuctionTerms" type="checkbox" class="mt-0.5 h-4 w-4 rounded accent-indigo-600" />
+                  <span class="text-[11px] text-slate-200">I digitally sign the Seller's Property Terms &amp; Conditions and authorize the entry fee hold (<span id="gateFeeAmountTag">$5,000</span>).</span>
+                </label>
+                <select id="selectPaymentMethod" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-slate-200">
+                  <option value="STRIPE_ESCROW_WIRE">Plaid Verified Bank Wire Hold (••• 4829)</option>
+                  <option value="STRIPE_CARD_HOLD">Stripe Tokenized Corporate Card (••• 9012)</option>
+                </select>
+                <button id="btnQualifyAndPayEntryFee" type="button" class="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-amber-400 transition">Authorize Entry Fee &amp; Sign Terms to Unlock Bidding</button>
+              </div>
+
+              <div id="bidPlacementCard" class="hidden rounded-2xl border border-emerald-500/50 bg-emerald-950/20 p-4 space-y-3">
+                <div class="flex items-center justify-between text-xs font-bold text-emerald-300">
+                  <span>✓ Bidder Qualified</span>
+                  <span id="qualReceiptBadge" class="font-mono-code text-[10px] text-slate-400"></span>
+                </div>
+                <div class="flex gap-2">
+                  <input id="inputBidAmount" type="number" step="25000" class="flex-1 rounded-xl border border-emerald-500/50 bg-slate-950 px-3 py-2 font-mono-code text-sm font-bold text-white focus:outline-none" />
+                  <button id="btnPlaceAtomicBid" type="button" class="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-extrabold text-slate-950 hover:bg-emerald-400 transition">Place Verified Bid</button>
+                </div>
+                <div class="relative pt-1">
+                  <input id="slideBidInput" type="range" min="0" max="100" value="0" class="slide-bid-track" />
+                  <span id="slideBidText" class="pointer-events-none absolute inset-0 flex items-center justify-center font-mono-code text-[11px] font-bold uppercase text-emerald-300">Slide Right to Confirm Atomic Bid →</span>
+                </div>
+                <button id="btnSimulateCompetingBid" type="button" class="text-[11px] font-semibold text-indigo-400 underline hover:text-indigo-300">+ Simulate Competing Institutional Bid</button>
+              </div>
+
+              <div class="rounded-2xl border border-slate-800 bg-slate-950/70 p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <h3 class="text-xs font-bold uppercase text-slate-300">Cryptographic Bid Audit Ladder</h3>
+                  <span id="bidCountBadge" class="font-mono-code text-[10px] text-slate-400"></span>
+                </div>
+                <div id="bidHistoryList" class="space-y-2 max-h-44 overflow-y-auto text-xs"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MOBILE BOTTOM NAVIGATION BAR -->
+      <nav id="mobileBottomNav" class="hidden shrink-0 z-30 flex-col border-t border-slate-800/90 bg-slate-950/95 px-2 pt-1.5 pb-2 select-none">
+        <div class="grid grid-cols-5 gap-1 text-[10px] font-semibold text-center">
+          <button id="mobNavExplore" type="button" class="py-1 text-slate-400 hover:text-white transition">3D Earth</button>
+          <button id="mobNavCounty" type="button" class="py-1 text-indigo-400 hover:text-white transition">County GIS</button>
+          <button id="mobNavChat" type="button" class="py-1 text-slate-400 hover:text-white transition">Owner Offer</button>
+          <button id="mobNavBid" type="button" class="py-1 text-slate-400 hover:text-white transition">Live Bid</button>
+          <button id="mobNavSecurity" type="button" class="py-1 text-emerald-400 hover:text-white transition">Security</button>
+        </div>
+      </nav>
+    </div>
+  </main>
+
+  <!-- SECURITY & AUDIT MODAL -->
+  <div id="securityModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+    <div class="flex max-h-[88vh] w-full max-w-3xl flex-col rounded-3xl border border-slate-700 bg-slate-900 overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-5 py-4">
+        <div>
+          <h2 class="font-display text-base font-extrabold text-white">One Place — Cybersecurity &amp; Non-Repudiation Audit Ledger</h2>
+          <p class="text-xs text-slate-400">PostGIS Row-Level Security, Encrypted In-Thread Messaging &amp; Chained Bid Proofs</p>
+        </div>
+        <button id="btnCloseSecurityModal" type="button" class="rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white transition">Close ✕</button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-5 space-y-3 text-xs">
+        <div id="securityAuditList" class="space-y-2 font-mono-code text-[11px]"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- COMPLETE INTERACTIVE FRONTEND APPLICATION SCRIPT -->
+  <script>
+  (function () {
+    const PARCELS = [
+      {
+        id: 'parcel-austin-301',
+        apn: '02-1450-0812-0000',
+        fipsCode: '48453',
+        countyName: 'Travis County, TX',
+        appraisalDistrict: 'Travis Central Appraisal District (TCAD)',
+        situsAddress: '301 W 2nd St — Silicon Hills Tower & Lot',
+        shortLabel: 'Austin 3D Tower',
+        city: 'Austin',
+        stateCode: 'TX',
+        zipCode: '78701',
+        lat: 30.2658,
+        lng: -97.7462,
+        kind: 'BUILDING',
+        lotSizeAcres: 1.85,
+        lotSizeSqft: 80586,
+        buildingSqft: 48200,
+        yearBuilt: 2019,
+        stories: 8,
+        zoningCode: 'CBD-CURE (Central Business District)',
+        floodZone: 'FEMA Zone X (Minimal Flood Hazard)',
+        utilities: 'Austin Energy Dual-Grid, Municipal Water, Dark Fiber',
+        legalDescription: 'LOT 1-4 BLK 18 ORIGINAL CITY OF AUSTIN PLUS AIR RIGHTS VOL 14210 PG 892',
+        assessedLandCents: 185000000,
+        assessedImprovementCents: 240000000,
+        totalAssessedCents: 425000000,
+        annualTaxCents: 8925000,
+        taxYear: 2026,
+        ownerOfRecordName: 'Lone Star Urban Holdings LLC',
+        vestingType: 'Delaware Series LLC (Verified Title Claim)',
+        redactedMailing: '500 Congress Ave Ste ••••, Austin, TX [AES-256 REDACTED]',
+        isOwnerVerified: true,
+        mapX: -140,
+        mapY: -35,
+        polygonPts: [[-55, -38], [55, -42], [62, 32], [-48, 38]],
+        extrudeHeight: 78,
+        taxHistory: [
+          { year: 2026, assessed: 4250000, tax: 89250 },
+          { year: 2025, assessed: 4080000, tax: 85680 }
+        ],
+        deedHistory: [
+          { date: '2021-11-14', type: 'Special Warranty Deed', docNo: '2021-198442', price: '$3,750,000', grantee: 'Lone Star Urban Holdings LLC' }
+        ],
+        messageRequest: {
+          status: 'PENDING',
+          offerPrice: 4400000,
+          financing: 'CASH • 21-Day Close',
+          introNote: 'Prepared to acquire 301 W 2nd St all-cash with $250,000 earnest deposit.',
+          messages: [
+            { sender: 'BUYER', author: 'Alex Rivera (Buyer • POF $4.5M)', text: 'Initial Offer Request Submitted: $4,400,000. Waiting for Owner acceptance.', counterOffer: 4400000, time: '10:14 AM' }
+          ]
+        },
+        auction: {
+          id: 'auc-austin-301',
+          status: 'LIVE',
+          startingBid: 4100000,
+          currentBid: 4350000,
+          reservePrice: 4300000,
+          minIncrement: 50000,
+          entryFee: 5000,
+          refundableFee: true,
+          remainingSeconds: 165,
+          isBidderQualified: false,
+          paymentReceipt: null,
+          termsSha256: '8f9c4e2b91a0d7f4c3e28a1177d6b99c4f20a8e3d19b0c7e6a54f2d1c8b03a1b',
+          termsText: '1. AS-IS CONVEYANCE per Travis County records.\n2. $5,000 refundable entry fee hold required prior to bidding.\n3. 5% earnest deposit due within 48h; close in 30 days.',
+          bids: [
+            { bidder: 'Meridian Capital Group (KYC #8841)', amount: 4350000, time: '2m ago', hash: '9a4f61e0b3c8...c81e' },
+            { bidder: 'Vanguard Land Trust (KYC #3109)', amount: 4250000, time: '9m ago', hash: '4d2e7b1a998c...71b0' },
+            { bidder: 'Lone Star Fund IV (KYC #1092)', amount: 4150000, time: '18m ago', hash: 'e81a337c5412...09a2' }
+          ]
+        }
+      },
+      {
+        id: 'parcel-austin-riverfront',
+        apn: '03-2190-0401-0000',
+        fipsCode: '48453',
+        countyName: 'Travis County, TX',
+        appraisalDistrict: 'Travis Central Appraisal District (TCAD)',
+        situsAddress: '1420 Lady Bird Lake Pkwy — Waterfront Development Land',
+        shortLabel: 'Lakefront 4.6 Ac Land',
+        city: 'Austin',
+        stateCode: 'TX',
+        zipCode: '78704',
+        lat: 30.2549,
+        lng: -97.7389,
+        kind: 'LAND',
+        lotSizeAcres: 4.62,
+        lotSizeSqft: 201247,
+        buildingSqft: null,
+        yearBuilt: null,
+        stories: 0,
+        zoningCode: 'DMU-CO (Downtown Mixed-Use Corridor)',
+        floodZone: 'FEMA Zone AE (100-Year Buffer Checked)',
+        utilities: 'Municipal Water/Wastewater, Underground Electric at Boundary',
+        legalDescription: 'ABS 24 SUR 8 ISAAC DECKER ACR 4.620 WATERFRONT TRACT B',
+        assessedLandCents: 310000000,
+        assessedImprovementCents: 0,
+        totalAssessedCents: 310000000,
+        annualTaxCents: 6180000,
+        taxYear: 2026,
+        ownerOfRecordName: 'Barton Creek Family Ranch Trust',
+        vestingType: 'Irrevocable Family Land Trust (Verified Owner)',
+        redactedMailing: 'PO Box ••••, West Lake Hills, TX [AES-256 REDACTED]',
+        isOwnerVerified: true,
+        mapX: 85,
+        mapY: 55,
+        polygonPts: [[-70, -45], [68, -35], [75, 48], [-62, 52]],
+        extrudeHeight: 6,
+        taxHistory: [{ year: 2026, assessed: 3100000, tax: 61800 }],
+        deedHistory: [{ date: '2014-06-20', type: 'Trustee Distribution Deed', docNo: '2014-088310', price: '$1,450,000', grantee: 'Barton Creek Family Ranch Trust' }],
+        messageRequest: {
+          status: 'NONE',
+          offerPrice: 3350000,
+          financing: 'CASH • 21-Day Close',
+          introNote: '',
+          messages: []
+        },
+        auction: null
+      },
+      {
+        id: 'parcel-miami-brickell',
+        apn: '01-4138-024-0010',
+        fipsCode: '12086',
+        countyName: 'Miami-Dade County, FL',
+        appraisalDistrict: 'Miami-Dade Property Appraiser',
+        situsAddress: '1200 Brickell Bay Dr — Biscayne Bay Tower Lot',
+        shortLabel: 'Miami Brickell 3D',
+        city: 'Miami',
+        stateCode: 'FL',
+        zipCode: '33131',
+        lat: 25.7617,
+        lng: -80.1918,
+        kind: 'BUILDING',
+        lotSizeAcres: 1.40,
+        lotSizeSqft: 60984,
+        buildingSqft: 125000,
+        yearBuilt: 2022,
+        stories: 24,
+        zoningCode: 'T6-48-O (Urban Core Open Waterfront)',
+        floodZone: 'FEMA Zone VE (Coastal High Hazard)',
+        utilities: 'FPL FPL-Grid Redundant, Miami-Dade WASD Substation',
+        legalDescription: 'BRICKELL BAY SUB PB 14-88 LOTS 7 & 8 BLK 4',
+        assessedLandCents: 520000000,
+        assessedImprovementCents: 760000000,
+        totalAssessedCents: 1280000000,
+        annualTaxCents: 24320000,
+        taxYear: 2026,
+        ownerOfRecordName: 'Biscayne Capital Ventures LLC',
+        vestingType: 'Florida LLC (Title Verified)',
+        redactedMailing: '801 Brickell Ave Ste ••••, Miami, FL [AES-256 REDACTED]',
+        isOwnerVerified: true,
+        mapX: 230,
+        mapY: -110,
+        polygonPts: [[-45, -45], [45, -45], [45, 45], [-45, 45]],
+        extrudeHeight: 120,
+        taxHistory: [{ year: 2026, assessed: 12800000, tax: 243200 }],
+        deedHistory: [{ date: '2020-03-12', type: 'Special Warranty Deed', docNo: '2020-004419', price: '$9,800,000', grantee: 'Biscayne Capital Ventures LLC' }],
+        messageRequest: {
+          status: 'NONE',
+          offerPrice: 13500000,
+          financing: 'CASH • 21-Day Close',
+          introNote: '',
+          messages: []
+        },
+        auction: {
+          id: 'auc-miami-1200',
+          status: 'LIVE',
+          startingBid: 11500000,
+          currentBid: 12800000,
+          reservePrice: 12500000,
+          minIncrement: 100000,
+          entryFee: 15000,
+          refundableFee: true,
+          remainingSeconds: 410,
+          isBidderQualified: false,
+          paymentReceipt: null,
+          termsSha256: '3a88d1f2e99b4412c77098e1f54c9a87d32c10b6417a89e13d987b21a811c4e2',
+          termsText: '1. Conveyed by Special Warranty Deed with title policy credit.\n2. Non-refundable $15k entry fee hold credited against earnest deposit.\n3. 10% earnest money within 24 hours of gavel fall.',
+          bids: [
+            { bidder: 'Blackstone RE Partners (KYC #9910)', amount: 12800000, time: '6m ago', hash: '5f11a88b...e901' },
+            { bidder: 'Starwood Global Real Estate (KYC #4812)', amount: 12600000, time: '14m ago', hash: '88bc3410...9902' }
+          ]
+        }
+      },
+      {
+        id: 'parcel-beverlyhills-crest',
+        apn: '4359-012-045',
+        fipsCode: '06037',
+        countyName: 'Los Angeles County, CA',
+        appraisalDistrict: 'LA County Office of the Assessor',
+        situsAddress: '10400 Bellagio Rd — Bel Air Foothills Estate Lot',
+        shortLabel: 'Bel Air 3.25 Ac Land',
+        city: 'Los Angeles',
+        stateCode: 'CA',
+        zipCode: '90077',
+        lat: 34.0837,
+        lng: -118.4452,
+        kind: 'LAND',
+        lotSizeAcres: 3.25,
+        lotSizeSqft: 141570,
+        buildingSqft: null,
+        yearBuilt: null,
+        stories: 0,
+        zoningCode: 'LA-RE40 (Residential Estate Min 40k sf)',
+        floodZone: 'FEMA Zone X (Very Low Flood Risk)',
+        utilities: 'LADWP Water & Power stubbed at Bellagio road frontage',
+        legalDescription: 'TRACT NO 7656 LOT 14 BLK 2 EX OF ST',
+        assessedLandCents: 850000000,
+        assessedImprovementCents: 0,
+        totalAssessedCents: 850000000,
+        annualTaxCents: 10625000,
+        taxYear: 2026,
+        ownerOfRecordName: 'Bellagio Crest Trust (Northern Trust NA Trustee)',
+        vestingType: 'California Living Trust (County Assessor Matched)',
+        redactedMailing: '333 S Grand Ave Ste ••••, Los Angeles, CA [AES-256 REDACTED]',
+        isOwnerVerified: false,
+        mapX: -280,
+        mapY: 120,
+        polygonPts: [[-60, -40], [65, -30], [55, 45], [-50, 35]],
+        extrudeHeight: 8,
+        taxHistory: [{ year: 2026, assessed: 8500000, tax: 106250 }],
+        deedHistory: [{ date: '2018-09-04', type: 'Grant Deed', docNo: '2018-092211', price: '$7,200,000', grantee: 'Bellagio Crest Trust' }],
+        messageRequest: {
+          status: 'NONE',
+          offerPrice: 8750000,
+          financing: 'CASH • 21-Day Close',
+          introNote: '',
+          messages: []
+        },
+        auction: null
+      },
+      {
+        id: 'parcel-seattle-tech',
+        apn: '198420-0195',
+        fipsCode: '53033',
+        countyName: 'King County, WA',
+        appraisalDistrict: 'King County Department of Assessments',
+        situsAddress: '400 Westlake Ave N — South Lake Union Innovation Hub',
+        shortLabel: 'Seattle SLU 3D Hub',
+        city: 'Seattle',
+        stateCode: 'WA',
+        zipCode: '98109',
+        lat: 47.6225,
+        lng: -122.3382,
+        kind: 'BUILDING',
+        lotSizeAcres: 2.10,
+        lotSizeSqft: 91476,
+        buildingSqft: 96000,
+        yearBuilt: 2021,
+        stories: 14,
+        zoningCode: 'SM-SLU 160/85-240 (Seattle Mixed)',
+        floodZone: 'FEMA Zone X',
+        utilities: 'Seattle City Light High-Voltage Feed, SPU Water & Stormwater',
+        legalDescription: 'DENNYS D T 4TH ADD LOTS 1 TO 6 INCL BLK 78',
+        assessedLandCents: 380000000,
+        assessedImprovementCents: 570000000,
+        totalAssessedCents: 950000000,
+        annualTaxCents: 8550000,
+        taxYear: 2026,
+        ownerOfRecordName: 'Cascadia Tech Properties Inc',
+        vestingType: 'Washington C-Corp (Verified Owner Claim)',
+        redactedMailing: '1201 3rd Ave Ste ••••, Seattle, WA [AES-256 REDACTED]',
+        isOwnerVerified: true,
+        mapX: -40,
+        mapY: -160,
+        polygonPts: [[-50, -45], [52, -45], [50, 48], [-48, 48]],
+        extrudeHeight: 90,
+        taxHistory: [{ year: 2026, assessed: 9500000, tax: 85500 }],
+        deedHistory: [{ date: '2021-02-18', type: 'Statutory Warranty Deed', docNo: '2021-0218000412', price: '$8,900,000', grantee: 'Cascadia Tech Properties Inc' }],
+        messageRequest: {
+          status: 'NONE',
+          offerPrice: 9750000,
+          financing: 'COMMERCIAL LOAN • 45-Day Close',
+          introNote: '',
+          messages: []
+        },
+        auction: null
+      },
+      {
+        id: 'parcel-denver-transit',
+        apn: '02331-18-004-000',
+        fipsCode: '08031',
+        countyName: 'Denver County, CO',
+        appraisalDistrict: 'Denver Assessor & Recorder',
+        situsAddress: '1801 Wynkoop St — LoDo Mixed-Use Transit Parcel',
+        shortLabel: 'Denver LoDo 3D Transit',
+        city: 'Denver',
+        stateCode: 'CO',
+        zipCode: '80202',
+        lat: 39.7539,
+        lng: -104.9989,
+        kind: 'BUILDING',
+        lotSizeAcres: 1.15,
+        lotSizeSqft: 50094,
+        buildingSqft: 54000,
+        yearBuilt: 2017,
+        stories: 7,
+        zoningCode: 'D-LD (Downtown Lower Downtown Historic)',
+        floodZone: 'FEMA Zone X (Protected by Cherry Creek Levees)',
+        utilities: 'Xcel Energy Dual Substation, Denver Water Dedicated Main',
+        legalDescription: 'LODO FLG 2 LOT 4 EXC RR ROW',
+        assessedLandCents: 210000000,
+        assessedImprovementCents: 330000000,
+        totalAssessedCents: 540000000,
+        annualTaxCents: 4104000,
+        taxYear: 2026,
+        ownerOfRecordName: 'Mile High Urban Realty Partners LP',
+        vestingType: 'Colorado Limited Partnership (Verified Owner)',
+        redactedMailing: '1700 Lincoln St Ste ••••, Denver, CO [AES-256 REDACTED]',
+        isOwnerVerified: true,
+        mapX: 180,
+        mapY: 140,
+        polygonPts: [[-42, -40], [44, -38], [42, 42], [-40, 40]],
+        extrudeHeight: 64,
+        taxHistory: [{ year: 2026, assessed: 5400000, tax: 41040 }],
+        deedHistory: [{ date: '2019-07-22', type: 'Special Warranty Deed', docNo: '2019-093144', price: '$4,850,000', grantee: 'Mile High Urban Realty Partners LP' }],
+        messageRequest: {
+          status: 'NONE',
+          offerPrice: 5600000,
+          financing: 'CASH • 21-Day Close',
+          introNote: '',
+          messages: []
+        },
+        auction: null
+      }
+    ];
+
+    const state = {
+      deviceMode: 'WEB',
+      mobileSheetStage: 'HALF',
+      activeRole: 'BUYER',
+      activeTab: 'COUNTY',
+      selectedParcelId: PARCELS[0].id,
+      searchQuery: '',
+      filterType: 'ALL',
+      cameraMode: '3D_EARTH',
+      pitchDeg: 55,
+      yawDeg: -18,
+      zoom: 1.05,
+      panX: 0,
+      panY: 0,
+      isDragging: false,
+      lastMouseX: 0,
+      lastMouseY: 0,
+      auditLogs: [
+        { time: '19:01:04 UTC', type: 'POSTGIS_RLS_GUARD', detail: 'Initialized PostgreSQL Row-Level Security trigger enforce_message_request_gate().', hash: 'sha256:4a8e9012...99b1' },
+        { time: '19:02:18 UTC', type: 'PII_AES256_REDACTION', detail: 'Masked county tax mailing addresses and owner phone records.', hash: 'sha256:7f1c33e8...12d4' },
+        { time: '19:03:45 UTC', type: 'TERMS_SHA256_STAMP', detail: 'Cataloged Seller Property Terms & Conditions for APN 02-1450-0812-0000.', hash: 'sha256:8f9c4e2b...3a1b' },
+        { time: '19:05:00 UTC', type: 'BID_HASH_CHAIN_INIT', detail: 'Chained genesis bid audit root for auction auc-austin-301.', hash: 'sha256:9a4f61e0...c81e' }
+      ]
+    };
+
+    function computePseudoSha256(str) {
+      let h1 = 0xdeadbeef ^ str.length, h2 = 0x41c6ce57 ^ str.length;
+      for (let i = 0; i < str.length; i++) {
+        const ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+      }
+      return ((h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0')).repeat(4).slice(0, 64);
+    }
+
+    function addAuditLog(type, detail) {
+      const now = new Date();
+      const timeStr = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')}:${String(now.getUTCSeconds()).padStart(2, '0')} UTC`;
+      const hashStr = 'sha256:' + computePseudoSha256(detail + now.toISOString()).slice(0, 16) + '...' + computePseudoSha256(detail).slice(-4);
+      state.auditLogs.unshift({ time: timeStr, type, detail, hash: hashStr });
+      if (state.auditLogs.length > 25) state.auditLogs.pop();
+      updateAuditUI();
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200' :
+                 type === 'error' ? 'bg-rose-950/90 border-rose-500/50 text-rose-200' :
+                 type === 'warning' ? 'bg-amber-950/90 border-amber-500/50 text-amber-200' :
+                 'bg-slate-900/95 border-indigo-500/40 text-slate-100';
+      toast.className = `pointer-events-auto flex items-center gap-2.5 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-md text-xs transition-all duration-300 transform translate-y-2 opacity-0 ${bg}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function getSelectedParcel() {
+      return PARCELS.find((p) => p.id === state.selectedParcelId) || PARCELS[0];
+    }
+
+    function getFilteredParcels() {
+      return PARCELS.filter((p) => {
+        if (state.filterType === 'LAND' && p.kind !== 'LAND') return false;
+        if (state.filterType === 'BUILDING' && p.kind !== 'BUILDING') return false;
+        if (state.filterType === 'AUCTION' && !p.auction) return false;
+        if (state.searchQuery.trim()) {
+          const q = state.searchQuery.toLowerCase();
+          return `${p.apn} ${p.situsAddress} ${p.city} ${p.stateCode} ${p.ownerOfRecordName} ${p.zoningCode}`.toLowerCase().includes(q);
+        }
+        return true;
+      });
+    }
+
+    // Canvas & 3D Math Engine
+    const canvas = document.getElementById('earthMapCanvas');
+    const ctx = canvas.getContext('2d');
+    let renderedParcelPins = [];
+
+    function project3D(wx, wy, wz, cx, cy) {
+      const yaw = (state.yawDeg * Math.PI) / 180;
+      const pitch = (state.pitchDeg * Math.PI) / 180;
+      const rx = wx * Math.cos(yaw) - wy * Math.sin(yaw);
+      const ry = wx * Math.sin(yaw) + wy * Math.cos(yaw);
+      const yTilted = ry * Math.cos(pitch) - wz * Math.sin(pitch);
+      const scale = state.zoom * (1 + (ry * Math.sin(pitch)) / 1800);
+      return { x: cx + state.panX + rx * scale, y: cy + state.panY + yTilted * state.zoom };
+    }
+
+    function drawEarthScene() {
+      const width = canvas.clientWidth || 800, height = canvas.clientHeight || 600;
+      const cx = width * 0.48, cy = height * 0.54;
+      ctx.clearRect(0, 0, width, height);
+
+      // Background Starfield / GIS Grid
+      ctx.fillStyle = state.cameraMode === 'HYBRID' ? '#030712' : '#020617';
+      ctx.fillRect(0, 0, width, height);
+
+      // Spherical Latitude / Longitude or Ground Grid
+      ctx.lineWidth = 1;
+      for (let g = -400; g <= 400; g += 50) {
+        const a = project3D(g, -400, 0, cx, cy);
+        const b = project3D(g, 400, 0, cx, cy);
+        ctx.strokeStyle = state.cameraMode === 'HYBRID' ? 'rgba(71, 85, 105, 0.28)' : 'rgba(51, 65, 85, 0.22)';
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+
+        const c = project3D(-400, g, 0, cx, cy);
+        const d = project3D(400, g, 0, cx, cy);
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y);
+        ctx.lineTo(d.x, d.y);
+        ctx.stroke();
+      }
+
+      renderedParcelPins = [];
+      const filtered = getFilteredParcels();
+
+      filtered.forEach((parcel) => {
+        const isSelected = parcel.id === state.selectedParcelId;
+        const worldPts = parcel.polygonPts.map((pt) => [parcel.mapX + pt[0], parcel.mapY + pt[1]]);
+        const groundPts = worldPts.map((w) => project3D(w[0], w[1], 0, cx, cy));
+        const hz = state.cameraMode === '2D_PARCEL' ? 0 : parcel.extrudeHeight;
+        const roofPts = worldPts.map((w) => project3D(w[0], w[1], hz, cx, cy));
+
+        // Ground Parcel Polygon (Lot Footprint)
+        ctx.beginPath();
+        groundPts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+        ctx.closePath();
+        ctx.fillStyle = isSelected
+          ? 'rgba(99, 102, 241, 0.38)'
+          : parcel.auction
+          ? 'rgba(16, 185, 129, 0.22)'
+          : 'rgba(51, 65, 85, 0.28)';
+        ctx.strokeStyle = isSelected ? '#818cf8' : parcel.auction ? '#34d399' : '#94a3b8';
+        ctx.lineWidth = isSelected ? 3 : 1.5;
+        ctx.fill();
+        ctx.stroke();
+
+        // 3D Extruded Building Walls & Roof
+        if (hz > 0) {
+          for (let i = 0; i < groundPts.length; i++) {
+            const next = (i + 1) % groundPts.length;
+            ctx.beginPath();
+            ctx.moveTo(groundPts[i].x, groundPts[i].y);
+            ctx.lineTo(groundPts[next].x, groundPts[next].y);
+            ctx.lineTo(roofPts[next].x, roofPts[next].y);
+            ctx.lineTo(roofPts[i].x, roofPts[i].y);
+            ctx.closePath();
+            ctx.fillStyle = isSelected
+              ? (i % 2 === 0 ? 'rgba(79, 70, 229, 0.85)' : 'rgba(67, 56, 202, 0.95)')
+              : (i % 2 === 0 ? 'rgba(30, 41, 59, 0.85)' : 'rgba(15, 23, 42, 0.95)');
+            ctx.strokeStyle = isSelected ? '#a5b4fc' : '#475569';
+            ctx.lineWidth = 1;
+            ctx.fill();
+            ctx.stroke();
+          }
+
+          // Roof Top Plate
+          ctx.beginPath();
+          roofPts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+          ctx.closePath();
+          ctx.fillStyle = isSelected ? 'rgba(99, 102, 241, 0.95)' : 'rgba(51, 65, 85, 0.95)';
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        // Marker Centroid Beacon & Floating Pin
+        const pin = project3D(parcel.mapX, parcel.mapY, hz + 24, cx, cy);
+        renderedParcelPins.push({ id: parcel.id, x: pin.x, y: pin.y });
+
+        // Draw HUD Marker Badge
+        ctx.save();
+        const badgeText = `${parcel.shortLabel} ${parcel.auction ? '• $' + (parcel.auction.currentBid / 1000000).toFixed(1) + 'M LIVE' : ''}`;
+        ctx.font = '600 11px Inter, sans-serif';
+        const txtWidth = ctx.measureText(badgeText).width;
+        const boxW = txtWidth + 24;
+        const boxH = 26;
+        const boxX = pin.x - boxW / 2;
+        const boxY = pin.y - boxH / 2;
+
+        // Stem down to building
+        ctx.strokeStyle = isSelected ? '#818cf8' : '#64748b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pin.x, pin.y + boxH / 2);
+        const groundPin = project3D(parcel.mapX, parcel.mapY, hz, cx, cy);
+        ctx.lineTo(groundPin.x, groundPin.y);
+        ctx.stroke();
+
+        // Pin Box
+        ctx.fillStyle = isSelected ? '#4338ca' : parcel.auction ? '#064e3b' : '#0f172a';
+        ctx.strokeStyle = isSelected ? '#a5b4fc' : parcel.auction ? '#34d399' : '#334155';
+        ctx.lineWidth = isSelected ? 2 : 1;
+        ctx.beginPath();
+        ctx.roundRect(boxX, boxY, boxW, boxH, 13);
+        ctx.fill();
+        ctx.stroke();
+
+        // Dot inside badge
+        ctx.fillStyle = parcel.auction ? '#34d399' : '#818cf8';
+        ctx.beginPath();
+        ctx.arc(boxX + 11, pin.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Label
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(badgeText, boxX + 20, pin.y + 4);
+        ctx.restore();
+      });
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(300, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(300, Math.floor(rect.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawEarthScene();
+    }
+
+    // Select Parcel & Update All DOM Tabs
+    function selectParcel(id) {
+      state.selectedParcelId = id;
+      const p = getSelectedParcel();
+
+      // Top Header & Subtitles
+      document.getElementById('parcelTypeBadge').textContent = p.kind === 'BUILDING' ? '3D BUILDING' : 'VACANT LAND';
+      document.getElementById('parcelApnBadge').textContent = `APN: ${p.apn}`;
+      const verifyBadge = document.getElementById('parcelOwnerVerifyBadge');
+      if (p.isOwnerVerified) {
+        verifyBadge.className = 'rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+        verifyBadge.textContent = 'Verified Owner';
+      } else {
+        verifyBadge.className = 'rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+        verifyBadge.textContent = 'County Record';
+      }
+
+      document.getElementById('parcelTitle').textContent = p.situsAddress;
+      document.getElementById('parcelSubtitle').textContent = `${p.city}, ${p.stateCode} ${p.zipCode} • ${p.countyName} (FIPS ${p.fipsCode})`;
+      document.getElementById('metricAssessed').textContent = `$${(p.totalAssessedCents / 100).toLocaleString()}`;
+      document.getElementById('metricSize').textContent = p.buildingSqft ? `${p.buildingSqft.toLocaleString()} sf` : `${p.lotSizeAcres} Ac`;
+      document.getElementById('metricMarketStatus').textContent = p.auction ? `${p.auction.status} AUCTION` : (p.messageRequest.status === 'ACCEPTED' ? 'CHAT UNLOCKED' : 'OFF-MARKET');
+      document.getElementById('metricMarketStatus').className = p.auction ? 'font-mono-code text-xs font-bold text-emerald-400' : 'font-mono-code text-xs font-bold text-slate-300';
+
+      document.getElementById('hudCoords').textContent = `${p.lat.toFixed(4)}° N, ${Math.abs(p.lng).toFixed(4)}° W`;
+      document.getElementById('hudFips').textContent = `FIPS ${p.fipsCode} (${p.countyName})`;
+
+      // TAB 1: COUNTY RECORD DETAILS
+      document.getElementById('countyRecorderSource').textContent = p.appraisalDistrict;
+      document.getElementById('countyZoningTag').textContent = p.zoningCode.split(' ')[0];
+      document.getElementById('countyLegalDesc').textContent = p.legalDescription;
+      document.getElementById('countyOwnerName').textContent = p.ownerOfRecordName;
+      document.getElementById('countyVesting').textContent = p.vestingType;
+      document.getElementById('countyMailingRedacted').textContent = p.redactedMailing;
+      document.getElementById('countyContactGateState').textContent = p.messageRequest.status === 'ACCEPTED' ? 'Unlocked (Owner Accepted)' : 'Protected by One Place Gate';
+
+      const specsGrid = document.getElementById('countySpecsGrid');
+      specsGrid.innerHTML = `
+        <div><span class="text-slate-400 block text-[10px]">Lot Size</span><span class="font-semibold text-white">${p.lotSizeAcres} Acres (${p.lotSizeSqft.toLocaleString()} sf)</span></div>
+        <div><span class="text-slate-400 block text-[10px]">Building Structure</span><span class="font-semibold text-white">${p.buildingSqft ? p.buildingSqft.toLocaleString() + ' sf • ' + p.stories + ' Stories' : 'Vacant Land Parcel'}</span></div>
+        <div><span class="text-slate-400 block text-[10px]">Year Built</span><span class="font-semibold text-white">${p.yearBuilt || 'N/A'}</span></div>
+        <div><span class="text-slate-400 block text-[10px]">FEMA Flood Zone</span><span class="font-semibold text-white">${p.floodZone}</span></div>
+      `;
+
+      document.getElementById('countyTaxAnnual').textContent = `$${(p.annualTaxCents / 100).toLocaleString()}/yr (${p.taxYear})`;
+      const valBars = document.getElementById('countyValuationBars');
+      const landPct = Math.round((p.assessedLandCents / p.totalAssessedCents) * 100);
+      const impPct = 100 - landPct;
+      valBars.innerHTML = `
+        <div class="flex justify-between text-[11px]"><span class="text-slate-400">Assessed Land Value</span><span class="font-mono-code text-white">$${(p.assessedLandCents / 100).toLocaleString()} (${landPct}%)</span></div>
+        <div class="h-2 w-full rounded-full bg-slate-800 overflow-hidden flex">
+          <div style="width: ${landPct}%" class="bg-indigo-500"></div>
+          <div style="width: ${impPct}%" class="bg-emerald-500"></div>
+        </div>
+        <div class="flex justify-between text-[11px]"><span class="text-slate-400">Improvement / Structure</span><span class="font-mono-code text-white">$${(p.assessedImprovementCents / 100).toLocaleString()} (${impPct}%)</span></div>
+      `;
+
+      const deedList = document.getElementById('countyDeedList');
+      deedList.innerHTML = p.deedHistory.map((d) => `
+        <div class="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-2.5">
+          <div><span class="font-semibold text-white">${d.type}</span><p class="text-[10px] text-slate-400">${d.date} • Doc #${d.docNo}</p></div>
+          <span class="font-mono-code font-bold text-emerald-400">${d.price}</span>
+        </div>
+      `).join('');
+
+      // TAB 2: GATED OFFER & CHAT
+      updateOfferChatUI();
+
+      // TAB 3: LIVE BIDDING
+      updateAuctionUI();
+
+      renderQuickBar();
+      drawEarthScene();
+    }
+
+    function updateOfferChatUI() {
+      const p = getSelectedParcel();
+      const roleBanner = document.getElementById('messageRoleBanner');
+      const reqStatus = p.messageRequest.status;
+      const isAccepted = reqStatus === 'ACCEPTED';
+
+      if (state.activeRole === 'BUYER') {
+        roleBanner.className = 'rounded-xl border border-indigo-500/30 bg-indigo-950/20 p-3 text-xs text-indigo-200';
+        roleBanner.innerHTML = `<strong>Buyer View:</strong> Direct messaging is protected by PostGIS RLS &amp; database triggers. You may submit 1 binding purchase offer. Full two-way chat unlocks only after owner accepts.`;
+      } else {
+        roleBanner.className = 'rounded-xl border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-amber-200';
+        roleBanner.innerHTML = `<strong>Verified Owner View:</strong> Review incoming buyer offers, evaluate Proof of Funds ($4.5M), and accept to unlock negotiation chat.`;
+      }
+
+      // Owner Decision Box
+      const ownerBox = document.getElementById('ownerRequestDecisionBox');
+      const buyerForm = document.getElementById('buyerOfferRequestForm');
+      const quickOwnerSwitchPrompt = document.getElementById('quickOwnerSwitchPrompt');
+
+      if (reqStatus === 'PENDING') {
+        document.getElementById('ownerReqStatusPill').textContent = 'PENDING OWNER REVIEW';
+        document.getElementById('ownerViewOfferAmount').textContent = `$${p.messageRequest.offerPrice.toLocaleString()}`;
+        document.getElementById('ownerViewOfferTerms').textContent = p.messageRequest.financing;
+        document.getElementById('ownerViewIntroNote').textContent = `"${p.messageRequest.introNote}"`;
+
+        if (state.activeRole === 'OWNER') {
+          ownerBox.classList.remove('hidden');
+          buyerForm.classList.add('hidden');
+          quickOwnerSwitchPrompt.classList.add('hidden');
+        } else {
+          ownerBox.classList.add('hidden');
+          buyerForm.classList.add('hidden');
+          quickOwnerSwitchPrompt.classList.remove('hidden');
+        }
+      } else if (reqStatus === 'ACCEPTED') {
+        ownerBox.classList.add('hidden');
+        buyerForm.classList.add('hidden');
+        quickOwnerSwitchPrompt.classList.add('hidden');
+      } else {
+        ownerBox.classList.add('hidden');
+        buyerForm.classList.remove('hidden');
+        quickOwnerSwitchPrompt.classList.add('hidden');
+        document.getElementById('inputOfferPrice').value = p.messageRequest.offerPrice || Math.round(p.totalAssessedCents * 1.05 / 100);
+      }
+
+      // Chat thread status
+      const chatDot = document.getElementById('chatLockIndicatorDot');
+      const chatBadge = document.getElementById('chatGateStatusBadge');
+      if (isAccepted) {
+        chatDot.className = 'h-2.5 w-2.5 rounded-full bg-emerald-400';
+        chatBadge.className = 'rounded px-2 py-0.5 font-mono-code text-[10px] font-bold bg-emerald-500/20 text-emerald-300';
+        chatBadge.textContent = 'UNLOCKED';
+      } else {
+        chatDot.className = 'h-2.5 w-2.5 rounded-full bg-amber-400';
+        chatBadge.className = 'rounded px-2 py-0.5 font-mono-code text-[10px] font-bold bg-amber-500/20 text-amber-300';
+        chatBadge.textContent = reqStatus === 'PENDING' ? 'PENDING OWNER ACCEPTANCE' : 'LOCKED (GATE ACTIVE)';
+      }
+
+      // Messages list
+      const chatContainer = document.getElementById('chatMessagesContainer');
+      if (!p.messageRequest.messages || p.messageRequest.messages.length === 0) {
+        chatContainer.innerHTML = `<div class="rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-center text-xs text-slate-400 italic">No messages yet. Submit an offer above to initiate the thread.</div>`;
+      } else {
+        chatContainer.innerHTML = p.messageRequest.messages.map((m) => {
+          const isSenderBuyer = m.sender === 'BUYER';
+          return `
+            <div class="rounded-xl border ${isSenderBuyer ? 'border-indigo-500/30 bg-indigo-950/30' : 'border-amber-500/30 bg-amber-950/30'} p-3 text-xs space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold ${isSenderBuyer ? 'text-indigo-300' : 'text-amber-300'}">${m.author}</span>
+                <span class="font-mono-code text-[10px] text-slate-400">${m.time}</span>
+              </div>
+              <p class="text-slate-200 leading-relaxed">${m.text}</p>
+              ${m.counterOffer ? `<div class="pt-1 flex items-center justify-between text-[11px]"><span class="text-slate-400">Structured Offer:</span><span class="font-mono-code font-bold text-emerald-400">$${Number(m.counterOffer).toLocaleString()}</span></div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function updateAuctionUI() {
+      const p = getSelectedParcel();
+      const noAuc = document.getElementById('noAuctionContainer');
+      const liveAuc = document.getElementById('liveAuctionContainer');
+      const aucTabBadge = document.getElementById('tabAuctionBadge');
+
+      if (!p.auction) {
+        noAuc.classList.remove('hidden');
+        liveAuc.classList.add('hidden');
+        aucTabBadge.textContent = 'OFF';
+        aucTabBadge.className = 'rounded bg-slate-800 px-1.5 py-0.2 font-mono-code text-[9px] text-slate-400';
+        return;
+      }
+
+      noAuc.classList.add('hidden');
+      liveAuc.classList.remove('hidden');
+      aucTabBadge.textContent = p.auction.status;
+      aucTabBadge.className = 'rounded bg-emerald-500/20 px-1.5 py-0.2 font-mono-code text-[9px] text-emerald-300';
+
+      document.getElementById('auctionStatusLabel').textContent = `${p.auction.status} PROPERTY AUCTION`;
+      document.getElementById('auctionCurrentBid').textContent = `$${p.auction.currentBid.toLocaleString()}`;
+      document.getElementById('auctionEntryFeeLabel').textContent = `$${p.auction.entryFee.toLocaleString()}`;
+      document.getElementById('auctionMinIncLabel').textContent = `$${p.auction.minIncrement.toLocaleString()}`;
+      document.getElementById('gateFeeAmountTag').textContent = `$${p.auction.entryFee.toLocaleString()}`;
+      document.getElementById('termsShaBadge').textContent = `SHA256: ${p.auction.termsSha256.slice(0, 10)}...`;
+      document.getElementById('auctionTermsBox').textContent = p.auction.termsText;
+
+      const m = Math.floor(p.auction.remainingSeconds / 60);
+      const s = p.auction.remainingSeconds % 60;
+      document.getElementById('auctionCountdown').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+      // Bidder Gate vs Bid Placement
+      const gateCard = document.getElementById('bidderGateCard');
+      const placementCard = document.getElementById('bidPlacementCard');
+
+      if (p.auction.isBidderQualified) {
+        gateCard.classList.add('hidden');
+        placementCard.classList.remove('hidden');
+        document.getElementById('qualReceiptBadge').textContent = p.auction.paymentReceipt || 'HOLD AUTH #9821';
+        document.getElementById('inputBidAmount').value = p.auction.currentBid + p.auction.minIncrement;
+      } else {
+        gateCard.classList.remove('hidden');
+        placementCard.classList.add('hidden');
+      }
+
+      // Bid history audit ladder
+      document.getElementById('bidCountBadge').textContent = `${p.auction.bids.length} AUDITED BIDS`;
+      const bidList = document.getElementById('bidHistoryList');
+      bidList.innerHTML = p.auction.bids.map((b, idx) => `
+        <div class="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/60 p-2.5">
+          <div>
+            <span class="font-semibold text-white">${b.bidder}</span>
+            <p class="font-mono-code text-[10px] text-slate-400">Audit Hash: ${b.hash} • ${b.time}</p>
+          </div>
+          <span class="font-mono-code font-bold ${idx === 0 ? 'text-emerald-400 text-sm' : 'text-slate-300'}">$${Number(b.amount).toLocaleString()}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderQuickBar() {
+      const bar = document.getElementById('parcelQuickBar');
+      bar.innerHTML = PARCELS.map((p) => {
+        const isSel = p.id === state.selectedParcelId;
+        return `
+          <button data-parcel-id="${p.id}" type="button" class="shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold transition border ${isSel ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-slate-900/90 border-slate-700/80 text-slate-300 hover:text-white'}">
+            ${p.shortLabel} ${p.auction ? '★' : ''}
+          </button>
+        `;
+      }).join('');
+
+      bar.querySelectorAll('button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selectParcel(btn.getAttribute('data-parcel-id'));
+        });
+      });
+    }
+
+    function updateAuditUI() {
+      document.getElementById('auditCountBadge').textContent = state.auditLogs.length;
+      const list = document.getElementById('securityAuditList');
+      list.innerHTML = state.auditLogs.map((log) => `
+        <div class="rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="rounded bg-emerald-500/20 px-2 py-0.5 font-bold text-emerald-300">${log.type}</span>
+            <span class="text-slate-400">${log.time}</span>
+          </div>
+          <p class="text-slate-200 text-xs">${log.detail}</p>
+          <div class="text-[10px] text-indigo-400">${log.hash}</div>
+        </div>
+      `).join('');
+    }
+
+    // TAB CONTROLS
+    function switchTab(tab) {
+      state.activeTab = tab;
+      const btnCounty = document.getElementById('tabBtnCounty');
+      const btnMessage = document.getElementById('tabBtnMessage');
+      const btnAuction = document.getElementById('tabBtnAuction');
+      const pnlCounty = document.getElementById('panelCounty');
+      const pnlMessage = document.getElementById('panelMessage');
+      const pnlAuction = document.getElementById('panelAuction');
+
+      [pnlCounty, pnlMessage, pnlAuction].forEach((p) => p.classList.add('hidden'));
+      btnCounty.className = 'flex items-center justify-center gap-1.5 py-3 border-b-2 border-transparent text-slate-400 transition';
+      btnMessage.className = 'flex items-center justify-center gap-1.5 py-3 border-b-2 border-transparent text-slate-400 transition';
+      btnAuction.className = 'flex items-center justify-center gap-1.5 py-3 border-b-2 border-transparent text-slate-400 transition';
+
+      if (tab === 'COUNTY') {
+        pnlCounty.classList.remove('hidden');
+        btnCounty.className = 'flex items-center justify-center gap-1.5 py-3 border-b-2 border-indigo-500 text-indigo-400 transition';
+      } else if (tab === 'MESSAGE') {
+        pnlMessage.classList.remove('hidden');
+        btnMessage.className = 'flex items-center justify-center gap-1.5 py-3 border-b-2 border-indigo-500 text-indigo-400 transition';
+      } else if (tab === 'AUCTION') {
+        pnlAuction.classList.remove('hidden');
+        btnAuction.className = 'flex items-center justify-center gap-1.5 py-3 border-b-2 border-emerald-500 text-emerald-400 transition';
+      }
+    }
+
+    document.getElementById('tabBtnCounty').addEventListener('click', () => switchTab('COUNTY'));
+    document.getElementById('tabBtnMessage').addEventListener('click', () => switchTab('MESSAGE'));
+    document.getElementById('tabBtnAuction').addEventListener('click', () => switchTab('AUCTION'));
+    document.getElementById('btnJumpToOffer').addEventListener('click', () => switchTab('MESSAGE'));
+    document.getElementById('btnJumpToAuction').addEventListener('click', () => switchTab('AUCTION'));
+
+    // DEVICE & MOBILE STAGE CONTROLS
+    const appViewport = document.getElementById('appViewport');
+    const mobileStatusBar = document.getElementById('mobileStatusBar');
+    const mobileBottomNav = document.getElementById('mobileBottomNav');
+    const mobileDragHeader = document.getElementById('mobileDragHeader');
+    const mobileMapActionRail = document.getElementById('mobileMapActionRail');
+    const mobileStageControls = document.getElementById('mobileStageControls');
+    const parcelDrawer = document.getElementById('parcelDrawer');
+
+    function setDeviceMode(mode) {
+      state.deviceMode = mode;
+      const btnWeb = document.getElementById('btnDeviceWeb');
+      const btnMob = document.getElementById('btnDeviceMobile');
+
+      if (mode === 'WEB') {
+        btnWeb.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition bg-indigo-600 text-white shadow';
+        btnMob.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition text-slate-400 hover:text-white';
+        appViewport.className = 'relative flex h-full w-full overflow-hidden bg-slate-950 transition-all duration-300';
+        mobileStatusBar.classList.add('hidden');
+        mobileBottomNav.classList.add('hidden');
+        mobileDragHeader.classList.add('hidden');
+        mobileMapActionRail.classList.add('hidden');
+        mobileStageControls.classList.add('hidden');
+        parcelDrawer.style.height = '100%';
+        parcelDrawer.classList.remove('absolute', 'bottom-0', 'left-0', 'right-0');
+      } else {
+        btnMob.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition bg-indigo-600 text-white shadow';
+        btnWeb.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition text-slate-400 hover:text-white';
+        appViewport.className = 'relative flex flex-col mobile-frame-container overflow-hidden bg-slate-950 transition-all duration-300';
+        mobileStatusBar.classList.remove('hidden');
+        mobileBottomNav.classList.remove('hidden');
+        mobileDragHeader.classList.remove('hidden');
+        mobileMapActionRail.classList.remove('hidden');
+        mobileStageControls.classList.remove('hidden');
+        setMobileStage(state.mobileSheetStage);
+      }
+      setTimeout(resizeCanvas, 50);
+    }
+
+    function setMobileStage(stage) {
+      state.mobileSheetStage = stage;
+      const ind = document.getElementById('mobileSheetStageIndicator');
+      parcelDrawer.classList.add('absolute', 'bottom-11', 'left-0', 'right-0');
+
+      if (stage === 'PEEK') {
+        parcelDrawer.style.height = '140px';
+        ind.textContent = 'PEEK SHEET';
+      } else if (stage === 'HALF') {
+        parcelDrawer.style.height = '50%';
+        ind.textContent = 'HALF SHEET';
+      } else if (stage === 'FULL') {
+        parcelDrawer.style.height = '88%';
+        ind.textContent = 'FULL SHEET';
+      }
+    }
+
+    document.getElementById('btnDeviceWeb').addEventListener('click', () => setDeviceMode('WEB'));
+    document.getElementById('btnDeviceMobile').addEventListener('click', () => setDeviceMode('MOBILE'));
+    document.getElementById('btnSheetMini').addEventListener('click', () => setMobileStage('PEEK'));
+    document.getElementById('btnSheetHalf').addEventListener('click', () => setMobileStage('HALF'));
+    document.getElementById('btnSheetFull').addEventListener('click', () => setMobileStage('FULL'));
+
+    // Mobile Bottom Navigation
+    document.getElementById('mobNavExplore').addEventListener('click', () => setMobileStage('PEEK'));
+    document.getElementById('mobNavCounty').addEventListener('click', () => { setMobileStage('HALF'); switchTab('COUNTY'); });
+    document.getElementById('mobNavChat').addEventListener('click', () => { setMobileStage('HALF'); switchTab('MESSAGE'); });
+    document.getElementById('mobNavBid').addEventListener('click', () => { setMobileStage('HALF'); switchTab('AUCTION'); });
+    document.getElementById('mobNavSecurity').addEventListener('click', () => document.getElementById('securityModal').classList.remove('hidden'));
+
+    // ROLE VIEW SWITCHER
+    function setRole(role) {
+      state.activeRole = role;
+      const btnBuyer = document.getElementById('btnRoleBuyer');
+      const btnOwner = document.getElementById('btnRoleOwner');
+
+      if (role === 'BUYER') {
+        btnBuyer.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition bg-emerald-600 text-white shadow';
+        btnOwner.className = 'relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition text-slate-400 hover:text-white';
+        document.getElementById('mobileRoleShortLabel').textContent = 'BUY';
+        showToast('Switched to Buyer Perspective (POF Verified: $4.5M)', 'info');
+      } else {
+        btnOwner.className = 'relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition bg-amber-600 text-white shadow';
+        btnBuyer.className = 'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-semibold transition text-slate-400 hover:text-white';
+        document.getElementById('mobileRoleShortLabel').textContent = 'OWN';
+        showToast('Switched to Verified Property Owner Perspective', 'warning');
+      }
+      updateOfferChatUI();
+    }
+
+    document.getElementById('btnRoleBuyer').addEventListener('click', () => setRole('BUYER'));
+    document.getElementById('btnRoleOwner').addEventListener('click', () => setRole('OWNER'));
+    document.getElementById('btnMobileRoleToggle').addEventListener('click', () => {
+      setRole(state.activeRole === 'BUYER' ? 'OWNER' : 'BUYER');
+    });
+    document.getElementById('btnQuickSwitchToOwner').addEventListener('click', () => setRole('OWNER'));
+
+    // BUYER OFFER SUBMISSION
+    document.getElementById('buyerOfferRequestForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const p = getSelectedParcel();
+      const price = Number(document.getElementById('inputOfferPrice').value);
+      const financing = document.getElementById('inputFinancingType').value;
+      const intro = document.getElementById('inputIntroMessage').value;
+
+      p.messageRequest = {
+        status: 'PENDING',
+        offerPrice: price,
+        financing: financing,
+        introNote: intro,
+        messages: [
+          {
+            sender: 'BUYER',
+            author: 'Alex Rivera (Buyer • POF $4.5M)',
+            text: `Offer Submitted: $${price.toLocaleString()} (${financing}). ${intro}`,
+            counterOffer: price,
+            time: 'Just now'
+          }
+        ]
+      };
+
+      addAuditLog('MESSAGE_REQUEST_PENDING', `Buyer submitted $${price.toLocaleString()} offer for APN ${p.apn}. Status locked awaiting owner acceptance.`);
+      showToast('Offer Request Submitted! The property owner has been notified.', 'success');
+      updateOfferChatUI();
+    });
+
+    // OWNER ACCEPT / DECLINE
+    document.getElementById('btnOwnerAcceptReq').addEventListener('click', () => {
+      const p = getSelectedParcel();
+      p.messageRequest.status = 'ACCEPTED';
+      p.messageRequest.messages.push({
+        sender: 'OWNER',
+        author: `${p.ownerOfRecordName} (Verified Owner)`,
+        text: 'Offer Request Accepted. Two-way encrypted chat has been unlocked by security gate.',
+        time: 'Just now'
+      });
+      addAuditLog('OWNER_REQUEST_ACCEPTED', `Owner accepted offer request for APN ${p.apn}. Trigger enforce_message_request_gate() unlocked.`);
+      showToast('Offer Accepted! Negotiation chat is now unlocked.', 'success');
+      updateOfferChatUI();
+    });
+
+    document.getElementById('btnOwnerDeclineReq').addEventListener('click', () => {
+      const p = getSelectedParcel();
+      p.messageRequest.status = 'DECLINED';
+      addAuditLog('OWNER_REQUEST_DECLINED', `Owner declined offer request for APN ${p.apn}. Thread closed.`);
+      showToast('Offer request declined.', 'warning');
+      updateOfferChatUI();
+    });
+
+    // CHAT MESSAGE COMPOSER
+    document.getElementById('chatComposerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const p = getSelectedParcel();
+      if (p.messageRequest.status !== 'ACCEPTED') {
+        showToast('ONE_PLACE_SECURITY_GATE: Messaging is locked until owner accepts request!', 'error');
+        return;
+      }
+
+      const inputTxt = document.getElementById('inputChatText');
+      const inputCounter = document.getElementById('inputCounterOffer');
+      let text = inputTxt.value.trim();
+      if (!text) return;
+
+      // Phone / Email redaction simulation
+      text = text.replace(/(\+?\d{1,2}[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/g, '[PHONE REDACTED BY ONE PLACE SECURITY]');
+      text = text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL REDACTED BY ONE PLACE SECURITY]');
+
+      const counter = inputCounter.value ? Number(inputCounter.value) : null;
+      const isBuyer = state.activeRole === 'BUYER';
+
+      p.messageRequest.messages.push({
+        sender: isBuyer ? 'BUYER' : 'OWNER',
+        author: isBuyer ? 'Alex Rivera (Buyer)' : `${p.ownerOfRecordName} (Owner)`,
+        text: text,
+        counterOffer: counter,
+        time: 'Just now'
+      });
+
+      addAuditLog('PGP_SYM_ENCRYPT_MSG', `Message inserted into messages table with pgp_sym_encrypt for APN ${p.apn}.`);
+      inputTxt.value = '';
+      inputCounter.value = '';
+      updateOfferChatUI();
+    });
+
+    // BIDDER ONBOARDING GATE (TERMS & ENTRY FEE HOLD)
+    document.getElementById('btnQualifyAndPayEntryFee').addEventListener('click', () => {
+      const p = getSelectedParcel();
+      if (!p.auction) return;
+      const chk = document.getElementById('chkAcceptAuctionTerms');
+      if (!chk.checked) {
+        showToast('Please check the box to digitally sign Terms & Conditions.', 'warning');
+        return;
+      }
+
+      const method = document.getElementById('selectPaymentMethod').value;
+      p.auction.isBidderQualified = true;
+      p.auction.paymentReceipt = method === 'STRIPE_ESCROW_WIRE' ? 'PLAID_WIRE_HOLD #8821' : 'STRIPE_AUTH_HOLD #4190';
+
+      addAuditLog('BIDDER_QUALIFIED', `Digitally signed terms (SHA256: ${p.auction.termsSha256.slice(0, 12)}...) & authorized $${p.auction.entryFee.toLocaleString()} hold.`);
+      showToast(`Terms signed & entry fee hold authorized! Bidding unlocked.`, 'success');
+      updateAuctionUI();
+    });
+
+    // ATOMIC BID PLACEMENT & ANTI-SNIPING SOFT CLOSE
+    function executeAtomicBid(amount) {
+      const p = getSelectedParcel();
+      if (!p.auction || !p.auction.isBidderQualified) {
+        showToast('You must authorize the entry fee and sign terms first!', 'error');
+        return;
+      }
+
+      const minBid = p.auction.currentBid + p.auction.minIncrement;
+      if (amount < minBid) {
+        showToast(`Minimum valid bid is $${minBid.toLocaleString()}`, 'warning');
+        return;
+      }
+
+      const prevHash = p.auction.bids.length ? p.auction.bids[0].hash : 'GENESIS_BID';
+      const recordHash = computePseudoSha256(`${prevHash}|${p.auction.id}|${amount}|${Date.now()}`).slice(0, 16) + '...' + computePseudoSha256(amount.toString()).slice(-4);
+
+      p.auction.currentBid = amount;
+      p.auction.bids.unshift({
+        bidder: 'Alex Rivera (Your Verified Bid)',
+        amount: amount,
+        time: 'Just now',
+        hash: recordHash
+      });
+
+      // Anti-sniping soft close trigger
+      if (p.auction.remainingSeconds <= 180) {
+        p.auction.remainingSeconds += 180;
+        p.auction.status = 'EXTENDED';
+        showToast(`Anti-Sniping Activated! Auction extended by +3:00 to prevent sniping.`, 'info');
+      }
+
+      addAuditLog('ATOMIC_BID_PLACED', `Placed $${amount.toLocaleString()} bid with chained audit hash: ${recordHash}.`);
+      showToast(`Verified Bid Placed: $${amount.toLocaleString()}!`, 'success');
+      updateAuctionUI();
+      drawEarthScene();
+    }
+
+    document.getElementById('btnPlaceAtomicBid').addEventListener('click', () => {
+      const val = Number(document.getElementById('inputBidAmount').value);
+      executeAtomicBid(val);
+    });
+
+    const slideBid = document.getElementById('slideBidInput');
+    slideBid.addEventListener('input', () => {
+      if (Number(slideBid.value) >= 95) {
+        slideBid.value = 0;
+        const val = Number(document.getElementById('inputBidAmount').value);
+        executeAtomicBid(val);
+      }
+    });
+
+    document.getElementById('btnSimulateCompetingBid').addEventListener('click', () => {
+      const p = getSelectedParcel();
+      if (!p.auction) return;
+      const nextComp = p.auction.currentBid + p.auction.minIncrement;
+      const prevHash = p.auction.bids[0]?.hash || 'GENESIS_BID';
+      const recordHash = computePseudoSha256(`COMPETING|${nextComp}`).slice(0, 16) + '...comp';
+
+      p.auction.currentBid = nextComp;
+      p.auction.bids.unshift({
+        bidder: 'Institutional Sovereign Fund (KYC #7702)',
+        amount: nextComp,
+        time: 'Just now',
+        hash: recordHash
+      });
+
+      if (p.auction.remainingSeconds <= 180) {
+        p.auction.remainingSeconds += 180;
+        p.auction.status = 'EXTENDED';
+      }
+
+      addAuditLog('COMPETING_BID_ARRIVED', `Institutional bid received: $${nextComp.toLocaleString()} on APN ${p.apn}.`);
+      showToast(`Competing Bid Placed: $${nextComp.toLocaleString()}`, 'info');
+      updateAuctionUI();
+      drawEarthScene();
+    });
+
+    // OWNER LAUNCH AUCTION
+    document.getElementById('ownerLaunchAuctionForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const p = getSelectedParcel();
+      const start = Number(document.getElementById('launchStartingBid').value);
+      const inc = Number(document.getElementById('launchMinIncrement').value);
+      const fee = Number(document.getElementById('launchEntryFee').value);
+      const terms = document.getElementById('launchTermsText').value;
+
+      p.auction = {
+        id: `auc-${p.id}`,
+        status: 'LIVE',
+        startingBid: start,
+        currentBid: start,
+        reservePrice: start,
+        minIncrement: inc,
+        entryFee: fee,
+        refundableFee: true,
+        remainingSeconds: 600,
+        isBidderQualified: false,
+        paymentReceipt: null,
+        termsSha256: computePseudoSha256(terms),
+        termsText: terms,
+        bids: [
+          { bidder: 'Opening Floor Bid', amount: start, time: 'Just now', hash: 'genesis_auc_root' }
+        ]
+      };
+
+      addAuditLog('AUCTION_PUBLISHED', `Owner published live auction for APN ${p.apn} with starting bid $${start.toLocaleString()}.`);
+      showToast('Live Property Auction Published!', 'success');
+      updateAuctionUI();
+      drawEarthScene();
+    });
+
+    // CAMERA & SEARCH CONTROLS
+    function setCamera(mode) {
+      state.cameraMode = mode;
+      const b2 = document.getElementById('btnCamera2D');
+      const bh = document.getElementById('btnCameraHybrid');
+      const b3 = document.getElementById('btnCamera3D');
+
+      [b2, bh, b3].forEach((b) => b.className = 'rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition');
+      if (mode === '2D_PARCEL') {
+        b2.className = 'rounded-xl px-2.5 py-1.5 text-xs font-semibold bg-indigo-600 text-white shadow transition';
+        state.pitchDeg = 0;
+      } else if (mode === 'HYBRID') {
+        bh.className = 'rounded-xl px-2.5 py-1.5 text-xs font-semibold bg-indigo-600 text-white shadow transition';
+        state.pitchDeg = 45;
+      } else {
+        b3.className = 'rounded-xl px-2.5 py-1.5 text-xs font-semibold bg-indigo-600 text-white shadow transition';
+        state.pitchDeg = 55;
+      }
+      document.getElementById('hudTiltLabel').textContent = `Pitch ${state.pitchDeg}°`;
+      drawEarthScene();
+    }
+
+    document.getElementById('btnCamera2D').addEventListener('click', () => setCamera('2D_PARCEL'));
+    document.getElementById('btnCameraHybrid').addEventListener('click', () => setCamera('HYBRID'));
+    document.getElementById('btnCamera3D').addEventListener('click', () => setCamera('3D_EARTH'));
+    document.getElementById('btnMobile3DToggle').addEventListener('click', () => {
+      setCamera(state.cameraMode === '3D_EARTH' ? '2D_PARCEL' : '3D_EARTH');
+    });
+
+    document.getElementById('btnTiltDown').addEventListener('click', () => {
+      state.pitchDeg = Math.max(0, state.pitchDeg - 10);
+      document.getElementById('hudTiltLabel').textContent = `Pitch ${state.pitchDeg}°`;
+      drawEarthScene();
+    });
+    document.getElementById('btnTiltUp').addEventListener('click', () => {
+      state.pitchDeg = Math.min(80, state.pitchDeg + 10);
+      document.getElementById('hudTiltLabel').textContent = `Pitch ${state.pitchDeg}°`;
+      drawEarthScene();
+    });
+    document.getElementById('btnRotateLeft').addEventListener('click', () => {
+      state.yawDeg -= 15;
+      drawEarthScene();
+    });
+    document.getElementById('btnRotateRight').addEventListener('click', () => {
+      state.yawDeg += 15;
+      drawEarthScene();
+    });
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      state.zoom = Math.min(2.5, state.zoom + 0.15);
+      drawEarthScene();
+    });
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      state.zoom = Math.max(0.4, state.zoom - 0.15);
+      drawEarthScene();
+    });
+    document.getElementById('btnResetCamera').addEventListener('click', () => {
+      state.pitchDeg = 55;
+      state.yawDeg = -18;
+      state.zoom = 1.05;
+      state.panX = 0;
+      state.panY = 0;
+      document.getElementById('hudTiltLabel').textContent = `Pitch 55°`;
+      drawEarthScene();
+    });
+
+    // MOUSE DRAG & ORBIT ON CANVAS
+    canvas.addEventListener('mousedown', (e) => {
+      state.isDragging = true;
+      state.lastMouseX = e.clientX;
+      state.lastMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!state.isDragging) return;
+      const dx = e.clientX - state.lastMouseX;
+      const dy = e.clientY - state.lastMouseY;
+      state.lastMouseX = e.clientX;
+      state.lastMouseY = e.clientY;
+
+      if (e.buttons === 1 && !e.shiftKey) {
+        state.yawDeg += dx * 0.4;
+        state.pitchDeg = Math.max(0, Math.min(80, state.pitchDeg - dy * 0.3));
+        document.getElementById('hudTiltLabel').textContent = `Pitch ${Math.round(state.pitchDeg)}°`;
+      } else {
+        state.panX += dx;
+        state.panY += dy;
+      }
+      drawEarthScene();
+    });
+
+    window.addEventListener('mouseup', () => {
+      state.isDragging = false;
+    });
+
+    // CANVAS CLICK SELECTION
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      for (let pin of renderedParcelPins) {
+        const dist = Math.hypot(pin.x - mouseX, pin.y - mouseY);
+        if (dist < 40) {
+          selectParcel(pin.id);
+          showToast(`Selected: ${getSelectedParcel().situsAddress}`, 'info');
+          break;
+        }
+      }
+    });
+
+    // SEARCH & FILTER
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      state.searchQuery = e.target.value;
+      drawEarthScene();
+    });
+
+    document.getElementById('filterPropertyType').addEventListener('change', (e) => {
+      state.filterType = e.target.value;
+      drawEarthScene();
+    });
+
+    // SECURITY MODAL
+    document.getElementById('btnOpenSecurityModal').addEventListener('click', () => {
+      document.getElementById('securityModal').classList.remove('hidden');
+    });
+    document.getElementById('btnCloseSecurityModal').addEventListener('click', () => {
+      document.getElementById('securityModal').classList.add('hidden');
+    });
+
+    // COUNTDOWN TICKER
+    setInterval(() => {
+      PARCELS.forEach((p) => {
+        if (p.auction && p.auction.status === 'LIVE' || p.auction?.status === 'EXTENDED') {
+          if (p.auction.remainingSeconds > 0) {
+            p.auction.remainingSeconds--;
+            if (p.id === state.selectedParcelId) {
+              const m = Math.floor(p.auction.remainingSeconds / 60);
+              const s = p.auction.remainingSeconds % 60;
+              document.getElementById('auctionCountdown').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+          }
+        }
+      });
+    }, 1000);
+
+    // INITIALIZATION
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('load', () => {
+      selectParcel(PARCELS[0].id);
+      renderQuickBar();
+      updateAuditUI();
+      resizeCanvas();
+    });
+  })();
+  </script>
+</body>
+</html>

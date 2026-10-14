@@ -1,0 +1,26 @@
+{
+  "name": "oneplace",
+  "version": "1.0.0",
+  "description": "One Place — US Parcel GIS, County Records, Request-Gated Offers & Property Bidding Platform",
+  "private": true,
+  "scripts": {
+    "start": "npx serve .",
+    "web:dev": "cd apps/oneplace-web && npm run dev",
+    "api:dev": "cd services/oneplace-api && npm run start:dev",
+    "db:migrate": "psql -d oneplace -f database/schema.sql"
+  },
+  "keywords": [
+    "postgis",
+    "gis",
+    "real-estate",
+    "county-records",
+    "auctions",
+    "bidding",
+    "nestjs",
+    "nextjs",
+    "typeorm",
+    "redis"
+  ],
+  "author": "jitinraavi",
+  "license": "MIT"
+}
